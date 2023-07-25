@@ -1,8 +1,37 @@
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Image, ScrollView, StyleSheet, Text, ToastAndroid, View } from "react-native";
+import FavoriteButton from "../components/UI/FavoriteButton";
+import { MealSliceActions } from "../redux/slices/mealSlice";
 
 const MealDetailScreen = ({ route, navigation }) => {
     const meal = route.params.meal;
     if (!meal) navigation.navigate("Categories");
+
+    const dispatch = useDispatch();
+    const meals = JSON.parse(useSelector((store) => store.mealSlice.mealsString));
+
+    const like = () => {
+        dispatch(MealSliceActions.markMealAsFavorite({ mealId: meal.id }));
+        ToastAndroid.show("Added to Favorite Meals!", ToastAndroid.LONG);
+    };
+
+    const dislike = () => {
+        dispatch(MealSliceActions.markMealAsNotFavorite({ mealId: meal.id }));
+        ToastAndroid.show("Removed from Favorite Meals!", ToastAndroid.LONG);
+    };
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <FavoriteButton
+                    isLiked={meals.find((item) => item.id === meal.id).isFavorite}
+                    onLike={like}
+                    onDislike={dislike}
+                />
+            ),
+        });
+    }, [navigation, FavoriteButton]);
 
     return (
         <View style={styles.screen}>
